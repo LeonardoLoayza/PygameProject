@@ -27,12 +27,14 @@ class Player():
     self.images_left = [] 
     self.index = 0 
     self.counter = 0
+    # 1 derecha, -1 izquierda
     self.direction = 0
     
+    #Animacion
     for num in range(1,5):
       img_right = pygame.image.load(f'img2/player_{num}.png')
       img_right = pygame.transform.scale(img_right, (40, 80))
-      img_left = pygame.transform.flip(img_right, True, False)
+      img_left = pygame.transform.flip(img_right, True, False) # Flip eje X 
 
       self.images_right.append(img_right)
       self.images_left.append(img_left)
@@ -53,11 +55,14 @@ class Player():
     
     # Mecanica de saltar, movimiento
     key = pygame.key.get_pressed()
+    # Prevenir que pueda saltar infinitas veces
     if key[pygame.K_SPACE] and self.jumped == False:
       self.vel_y = -15
       self.jumped = True
     if key[pygame.K_SPACE] == False: 
       self.jumped = False
+    # Cada tic se incrementa el counter y se actualiza la posicion del personaje
+    # A que lado va (izquierda o derecha)
     if key[pygame.K_LEFT]:
       dx -= 5
       self.counter += 1
@@ -66,9 +71,11 @@ class Player():
       dx += 5   
       self.counter += 1
       self.direction = 1
+    # Cuando se para, se pone la animacion inicial (IDLE)
     if key[pygame.K_LEFT] == False and key[pygame.K_RIGHT] == False: 
       self.index = 0 
       self.counter = 0 
+      # Revisar que lado el personaje esta viendo y cargar los sprites
       if self.direction == 1: 
         self.image = self.images_right[self.index]
       if self.direction == -1:
@@ -76,6 +83,7 @@ class Player():
 
       
     # Animacion 
+    # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     if self.counter > walk_cooldown:
       self.counter = 0
       self.index += 1
@@ -104,15 +112,11 @@ class Player():
         if self.vel_y < 0: 
           dy = tile[1].bottom - self.rect.top
           self.vel_y = 0 
-        # Verificar si esta encima del  
+        # Verificar si esta encima del suelo
         elif self.vel_y >= 0:
           dy = tile[1].top - self.rect.bottom
           self.vel_y = 0 
       
-    # for tile in world.tile_list:
-    #   if tile[1].colliderect(self.rect)  
-    
-    
     # Actualizar coordenadas jugador 
     self.rect.x += dx 
     self.rect.y += dy 
