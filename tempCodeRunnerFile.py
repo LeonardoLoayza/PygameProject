@@ -1,1 +1,2 @@
-ground_rect
+
+    #   if tile[1].colliderect(self.rect)  
