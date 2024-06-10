@@ -136,7 +136,7 @@ class World():
   def __init__(self, data):
     self.tile_list = []
     
-    dirt_img = pygame.image.load('img/dirt.png')
+    dirt_img = pygame.image.load('img2/a/estructura_9.png')
     grass_img = pygame.image.load('img/grass.png')
     
     row_count = 0
