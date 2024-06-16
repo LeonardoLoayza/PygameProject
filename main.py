@@ -59,8 +59,8 @@ class Player():
     if key[pygame.K_SPACE] and self.jumped == False:
       self.vel_y = -15
       self.jumped = True
-    if key[pygame.K_SPACE] == False: 
-      self.jumped = False
+    if key[pygame.K_SPACE] == False:
+     self.jumped = False 
     # Cada tic se incrementa el counter y se actualiza la posicion del personaje
     # A que lado va (izquierda o derecha)
     if key[pygame.K_LEFT]:
@@ -72,7 +72,7 @@ class Player():
       self.counter += 1
       self.direction = 1
     # Cuando se para, se pone la animacion inicial (IDLE)
-    if key[pygame.K_LEFT] == False and key[pygame.K_RIGHT] == False: 
+    if key[pygame.K_LEFT] == False and key[pygame.K_RIGHT] == False:
       self.index = 0 
       self.counter = 0 
       # Revisar que lado el personaje esta viendo y cargar los sprites
@@ -130,8 +130,7 @@ class Player():
     
     screen.blit(self.image, self.rect)
     pygame.draw.rect(screen, (255,255,255), self.rect, 2)
-    
-
+       
 class World():
   def __init__(self, data):
     self.tile_list = []
@@ -157,6 +156,9 @@ class World():
           img_rect.y = row_count * tile_size
           tile = (img, img_rect)
           self.tile_list.append(tile)
+        if tile == 3:
+          blob = Enemy(col_count * tile_size, row_count * tile_size + 15)
+          blob_group.add(blob)
         col_count += 1
       row_count += 1
     
@@ -165,6 +167,23 @@ class World():
       screen.blit(tile[0],tile[1])
       pygame.draw.rect(screen, (255,255,255), tile[1], 2)
     
+class Enemy(pygame.sprite.Sprite): 
+  # Esta clase donde hacemos herencia ya tiene metodo: draw y update
+  # Asi que solo dibujaran lo que self.image sea cuando llame a metodo draw()
+  def __init__(self, x, y):
+    # Inicializando el constructor de clase padre
+    pygame.sprite.Sprite.__init__(self)
+    self.image = pygame.image.load('img/blob.png')
+    self.rect = self.image.get_rect()
+    self.rect.x = x
+    self.rect.y = y
+    self.move_direction = 1
+    
+  def update(self):
+    self.rect.x += self.move_direction 
+    
+
+
 
 # matriz con la informacion del juego
 world_data = [
@@ -190,17 +209,28 @@ world_data = [
 [1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-player = Player(100, screen_height - 100)
+player = Player(100, screen_height - 130)
+blob_group = pygame.sprite.Group()
 world = World(world_data)
+# Why do I create this blob group ? How to explain ?
 
 run = True 
+
+#Todo: Explain what is class Enemy(pygame.sprite.Sprite): 
+#Todo: Fix this double jump 
 while run:
   # Insertando componentes del mapa del juego
+  
   screen.blit(bg_img, (0,0))
   screen.blit(sun_img, (100, 100))
   clock.tick(fps)
   
   world.draw()
+  
+  # Con este blob_group llamamos una funcion y esta la aplica a todos 
+  # los enemigos, osea no usamos update por cada enemigo en nuestro nivel
+  blob_group.update()
+  blob_group.draw(screen)
   player.update()
   
   # Evento cerrar juego

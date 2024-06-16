@@ -1,2 +1,1 @@
-
-    #   if tile[1].colliderect(self.rect)  
+move_direction
