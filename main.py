@@ -136,7 +136,7 @@ class World():
     self.tile_list = []
     
     dirt_img = pygame.image.load('img2/a/estructura_9.png')
-    grass_img = pygame.image.load('img/grass.png')
+    grass_img = pygame.image.load('img2/a/estructura_3.png')
     
     row_count = 0
     for row in data:
@@ -157,7 +157,7 @@ class World():
           tile = (img, img_rect)
           self.tile_list.append(tile)
         if tile == 3:
-          blob = Enemy(col_count * tile_size, row_count * tile_size + 15)
+          blob = Enemy(col_count * tile_size, row_count * tile_size - 5)
           blob_group.add(blob)
         col_count += 1
       row_count += 1
@@ -165,7 +165,7 @@ class World():
   def draw(self): 
     for tile in self.tile_list:
       screen.blit(tile[0],tile[1])
-      pygame.draw.rect(screen, (255,255,255), tile[1], 2)
+      # pygame.draw.rect(screen, (255,255,255), tile[1], 2)
     
 class Enemy(pygame.sprite.Sprite): 
   # Esta clase donde hacemos herencia ya tiene metodo: draw y update
@@ -173,14 +173,20 @@ class Enemy(pygame.sprite.Sprite):
   def __init__(self, x, y):
     # Inicializando el constructor de clase padre
     pygame.sprite.Sprite.__init__(self)
-    self.image = pygame.image.load('img/blob.png')
+    self.image = pygame.image.load('img2/spinner.png')
     self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
     self.move_direction = 1
+    self.move_counter = 0 
     
   def update(self):
+    #Todo: Explicar el movimiento de los enemigos
     self.rect.x += self.move_direction 
+    self.move_counter += 1
+    if abs(self.move_counter) > 50: 
+      self.move_direction *= -1 
+      self.move_counter *= -1      
     
 
 
@@ -220,9 +226,9 @@ run = True
 #Todo: Fix this double jump 
 while run:
   # Insertando componentes del mapa del juego
-  
   screen.blit(bg_img, (0,0))
   screen.blit(sun_img, (100, 100))
+  
   clock.tick(fps)
   
   world.draw()
