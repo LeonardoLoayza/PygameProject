@@ -31,12 +31,13 @@ class Player():
   def __init__(self, x,y):
     self.images_right = [] 
     self.images_left = [] 
+    
     self.index = 0 
     self.counter = 0
     # 1 derecha, -1 izquierda
     self.direction = 0
-    
-    #Animacion
+    # Tengo 4 imagenes para representar los movimientos de caminar
+    # Las cargo, escalo y agrego a mi lista de animaciones. 
     for num in range(1,5):
       img_right = pygame.image.load(f'img2/player_{num}.png')
       img_right = pygame.transform.scale(img_right, (40, 80))
@@ -47,6 +48,7 @@ class Player():
       
     self.image = self.images_right[self.index]
     self.dead_image = pygame.image.load('img/ghost.png')
+    # define the position and dimensions of the player sprite on the screen
     self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
@@ -58,12 +60,13 @@ class Player():
   def update(self, game_over):
     dx = 0
     dy = 0
+    # walk_cooldown, index y counter los usaremos para animaciones 
     walk_cooldown = 5
     
     if game_over == 0:  
       # Mecanica de saltar, movimiento
       key = pygame.key.get_pressed()
-      # Prevenir que pueda saltar infinitas veces
+      # Prevenir que pueda saltar infinitas veces com la tecla apretada
       if key[pygame.K_SPACE] and self.jumped == False:
         self.vel_y = -15
         self.jumped = True
@@ -154,7 +157,9 @@ class World():
     
     dirt_img = pygame.image.load('img2/a/estructura_9.png')
     grass_img = pygame.image.load('img2/a/estructura_3.png')
-    
+    # se usa row_count y column_count para posicionar bien 
+    # los tiles de acuerdo al tile_size y el world_data  
+    # se escala con el tile_size
     row_count = 0
     for row in data:
       col_count = 0
