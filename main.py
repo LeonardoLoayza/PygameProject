@@ -7,7 +7,7 @@ pygame.init()
 clock = pygame.time.Clock()
 fps = 30
 
-screen_width = 1000  # 1000
+screen_width = 1000
 screen_height = 1000
  
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -16,12 +16,15 @@ tile_size = 50
 game_over = 0 
 
 # Cargar las imagenes
-# sun_img = pygame.image.load('img/sun.png')
-# bg_img = pygame.image.load('img/sky.png')
-# bg_img = pygame.image.load('img2/atardecer_00.png')
 bg_img = pygame.transform.scale(pygame.image.load("img2/atardcerme_0.jpg"), (screen_height, screen_width))
 
-jumping_surface = pygame.transform.scale(pygame.image.load("mario_jumping.png"), (48,64))
+class Button():
+  def __init__(self, x, y, image):
+    self.image = image
+    self.rect = self.image.get_rect()
+    self.rect.x = x
+    self.rect.y = y
+    self.clicked = False
 
 # Todo: Mover clase a otro file
 class Player(): 
@@ -43,6 +46,7 @@ class Player():
       self.images_left.append(img_left)
       
     self.image = self.images_right[self.index]
+    self.dead_image = pygame.image.load('img/ghost.png')
     self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
@@ -135,10 +139,10 @@ class Player():
       # hacer que dy igual a 0 
       # porque 
       
-    # elif game_over == -1:
-    #   self.image = self.dead_image
-    #   if self.rect.y > 200:
-    #     self.rect.y -= 5
+    elif game_over == -1:
+      self.image = self.dead_image
+      if self.rect.y > 200:
+        self.rect.y -= 5
       
     screen.blit(self.image, self.rect)
     pygame.draw.rect(screen, (255,255,255), self.rect, 2)
@@ -175,7 +179,7 @@ class World():
           blob_group.add(blob)
         col_count += 1
         if tile == 6:
-          lava = Lava(col_count * tile_size, row_count * tile_size) 
+          lava = Lava(col_count * tile_size - 50, row_count * tile_size) 
           lava_group.add(lava)
         
       row_count += 1
@@ -186,6 +190,8 @@ class World():
       pygame.draw.rect(screen, (255,255,255), tile[1], 2)
     
 class Enemy(pygame.sprite.Sprite): 
+  # Nos ayuda a trabajar con grupos, por ejemplo puedo usar un metodo "kill"
+  # Y este eliminaria a todas las instancias de la clase. 
   # Esta clase donde hacemos herencia ya tiene metodo: draw y update
   # Asi que solo dibujaran lo que self.image sea cuando llame a metodo draw()
   def __init__(self, x, y):
@@ -258,6 +264,9 @@ while run:
   clock.tick(fps)
   
   world.draw()
+  
+  if game_over == 0:
+    blob_group.update()
   
   # Con este blob_group llamamos una funcion y esta la aplica a todos 
   # los enemigos, osea no usamos update por cada enemigo en nuestro nivel
