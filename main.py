@@ -16,6 +16,7 @@ tile_size = 50
 game_over = 0 
 
 # Cargar las imagenes
+restart_img = pygame.image.load('img/restart_btn.png')
 bg_img = pygame.transform.scale(pygame.image.load("img2/atardcerme_0.jpg"), (screen_height, screen_width))
 
 class Button():
@@ -25,49 +26,41 @@ class Button():
     self.rect.x = x
     self.rect.y = y
     self.clicked = False
+    
+  def draw(self):
+    # PARAAAAAAAAAAAAAAAAAAAAA QUE SIRVE ACTION ?
+    action = False
+    # Posicion de mouse 
+    pos = pygame.mouse.get_pos()
+    # collidepoint nos permite saber si el cursor esta sobre el objeto button
+    if self.rect.collidepoint(pos):
+      # Revisar si hacemos click izquierdo
+      if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+        action = True 
+        self.clicked = True
+
+    if pygame.mouse.get_pressed()[0] == 0:
+      self.clicked = False  
+            
+    screen.blit(self.image, self.rect)
+    return action 
 
 # Todo: Mover clase a otro file
 class Player(): 
   def __init__(self, x,y):
-    self.images_right = [] 
-    self.images_left = [] 
-    
-    self.index = 0 
-    self.counter = 0
-    # 1 derecha, -1 izquierda
-    self.direction = 0
-    # Tengo 4 imagenes para representar los movimientos de caminar
-    # Las cargo, escalo y agrego a mi lista de animaciones. 
-    for num in range(1,5):
-      img_right = pygame.image.load(f'img2/player_{num}.png')
-      img_right = pygame.transform.scale(img_right, (40, 80))
-      img_left = pygame.transform.flip(img_right, True, False) # Flip eje X 
-
-      self.images_right.append(img_right)
-      self.images_left.append(img_left)
-      
-    self.image = self.images_right[self.index]
-    self.dead_image = pygame.image.load('img/ghost.png')
-    # define the position and dimensions of the player sprite on the screen
-    self.rect = self.image.get_rect()
-    self.rect.x = x
-    self.rect.y = y
-    self.width = self.image.get_width()
-    self.height = self.image.get_height() 
-    self.vel_y = 0
-    self.jumped = False 
+    self.reset(x, y)
     
   def update(self, game_over):
     dx = 0
     dy = 0
     # walk_cooldown, index y counter los usaremos para animaciones 
-    walk_cooldown = 5
+    walk_cooldown = 10
     
     if game_over == 0:  
       # Mecanica de saltar, movimiento
       key = pygame.key.get_pressed()
       # Prevenir que pueda saltar infinitas veces com la tecla apretada
-      if key[pygame.K_SPACE] and self.jumped == False:
+      if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
         self.vel_y = -15
         self.jumped = True
       if key[pygame.K_SPACE] == False:
@@ -94,6 +87,8 @@ class Player():
 
       # Animacion 
       # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      # Counter aumenta cada vez que apretamos el key de movimiento
+      # Luego actualizamos la 
       if self.counter > walk_cooldown:
         self.counter = 0
         self.index += 1
@@ -111,6 +106,7 @@ class Player():
       dy += self.vel_y 
       
       # Verificar colision
+      self.in_air = True
       for tile in world.tile_list: 
         # Colision en X
         if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -118,14 +114,16 @@ class Player():
         
         # Si colisiona con algo en Y 
         if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-          # Verificar si esta debajo del suelo 
+          # Verificar si esta debajo del suelo, saltar
           if self.vel_y < 0: 
             dy = tile[1].bottom - self.rect.top
             self.vel_y = 0 
-          # Verificar si esta encima del suelo
+          # Verificar si esta encima del suelo, caerse
           elif self.vel_y >= 0:
             dy = tile[1].top - self.rect.bottom
             self.vel_y = 0 
+            self.in_air = False
+            
         
       # Si nuestro objeto Player colisiona con el enemigo
       if pygame.sprite.spritecollide(self, blob_group, False):
@@ -150,6 +148,37 @@ class Player():
     screen.blit(self.image, self.rect)
     pygame.draw.rect(screen, (255,255,255), self.rect, 2)
     return game_over
+  
+  def reset(self, x, y):
+    self.images_right = [] 
+    self.images_left = [] 
+    self.index = 0 
+    self.counter = 0
+    
+    # Tengo 4 imagenes para representar los movimientos de caminar
+    # Las cargo, escalo y agrego a mi lista de animaciones. 
+    for num in range(1,5):
+      img_right = pygame.image.load(f'img2/player_{num}.png')
+      img_right = pygame.transform.scale(img_right, (40, 80))
+      img_left = pygame.transform.flip(img_right, True, False) # Flip eje X 
+
+      self.images_right.append(img_right)
+      self.images_left.append(img_left)
+      
+    self.image = self.images_right[self.index]
+    self.dead_image = pygame.image.load('img/ghost.png')
+    # define the position and dimensions of the player sprite on the screen
+    self.rect = self.image.get_rect()
+    self.rect.x = x
+    self.rect.y = y
+    self.width = self.image.get_width()
+    self.height = self.image.get_height() 
+    self.vel_y = 0
+    self.jumped = False
+    # 1 derecha, -1 izquierda
+    self.direction = 0
+    self.in_air = True
+    
        
 class World():
   def __init__(self, data):
@@ -257,6 +286,8 @@ lava_group = pygame.sprite.Group()
 world = World(world_data)
 # Why do I create this blob group ? How to explain ?
 
+restart_button = Button(screen_width // 2 - 50, screen_height // 2 +100, restart_img)
+
 run = True 
 
 #Todo: Explain what is class Enemy(pygame.sprite.Sprite): 
@@ -280,6 +311,12 @@ while run:
   blob_group.draw(screen)
   
   game_over = player.update(game_over)
+  
+  if game_over == -1:
+    if restart_button.draw():
+      player.reset(100, screen_height - 130)
+      game_over = 0
+      print('reset')
   
   # Evento cerrar juego
   for event in pygame.event.get():
