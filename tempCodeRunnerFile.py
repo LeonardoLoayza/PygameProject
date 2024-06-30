@@ -1,1 +1,1 @@
-restart_button
+restart
