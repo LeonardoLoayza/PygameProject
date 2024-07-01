@@ -25,8 +25,8 @@ font_score = pygame.font.SysFont('Bauhaus 93', 30)
 tile_size = 50
 game_over = 0 # 1, 0, -1
 main_menu = True
-level = 5
-max_levels = 7
+level = 6
+max_levels = 8
 score = 0
 white = (255, 255, 255)
 blue = (0, 0, 255)
@@ -39,7 +39,7 @@ start_img = pygame.image.load('img/start_btn.png')
 exit_img = pygame.image.load('img/exit_btn.png')
 
 
-# Sonido
+# Sonido usando mixer y archivos wav
 pygame.mixer.music.load('img/mgk-dontletmego.wav')
 pygame.mixer.music.play(-1, 0.0, 5000)
 coin_fx = pygame.mixer.Sound('img/get_coin.wav')
@@ -49,29 +49,31 @@ jump_fx.set_volume(0.6)
 game_over_fx = pygame.mixer.Sound('img/gameover_piano.wav')
 game_over_fx.set_volume(2)
 
-
+# Renderizar texto en el juego (Ganaste, perdiste)
 def draw_game_text(text, font, text_col, x, y):
 	img = font.render(text, True, text_col)
 	screen.blit(img, (x, y))
 
 
-#function to reset level
+# Poner las variables en el estado inicial o vacio
 def reset_level(level):
 	player.reset(100, screen_height - 130)
 	spinner_enemy_group.empty()
 	moving_platform_group.empty()
-	coin_group.empty()
+	apple_group.empty()
 	lava_group.empty()
 	exit_group.empty()
 
-	#load in level data and create world
+	# Cargar archivo en binario (Eficiencia, compatibilidad, seguridad)
 	if path.exists(f'level{level}_data'):
 		pickle_in = open(f'level{level}_data', 'rb')
 		world_data = pickle.load(pickle_in)
 	world = World(world_data)
-	#create dummy coin for showing the score
-	score_coin = Coin(tile_size // 2, tile_size // 2)
-	coin_group.add(score_coin)
+	
+  # Imagen referencial de nuestras manzanas
+	apple_score = Apple(tile_size // 2, tile_size // 2)
+	apple_group.add(apple_score)
+	
 	return world
 
 
@@ -86,12 +88,12 @@ class Button():
 	def draw(self):
 		action = False
 
-		#get mouse position
+		# Posicion del mouse
 		pos = pygame.mouse.get_pos()
 
-		#check mouseover and clicked conditions
+		# Colision del cursor, evento click
 		if self.rect.collidepoint(pos):
-			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:  # Solo una vez hacer click
 				action = True
 				self.clicked = True
 
@@ -296,8 +298,9 @@ class World():
 					lava = Lava(col_count * tile_size, row_count * tile_size + (tile_size // 2))
 					lava_group.add(lava)
 				if tile == 7:
-					coin = Coin(col_count * tile_size + (tile_size // 2), row_count * tile_size + (tile_size // 2))
-					coin_group.add(coin)
+					coin = Apple(col_count * tile_size + (tile_size // 2), row_count * tile_size + (tile_size // 2))
+					apple_group.add(coin)
+					
 				if tile == 8:
 					exit = Exit(col_count * tile_size, row_count * tile_size - (tile_size // 2))
 					exit_group.add(exit)
@@ -315,9 +318,9 @@ class Enemy(pygame.sprite.Sprite):
 	def __init__(self, x, y):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load('enemy.png')
-		self.rect = self.image.get_rect()
+		# Colision del cursor, evento click
 		self.rect.x = x
-		self.rect.y = y
+		self.rect.y = y  # Solo una vez hacer click
 		self.move_direction = 1
 		self.move_counter = 0
 
@@ -365,7 +368,8 @@ class Lava(pygame.sprite.Sprite):
 		self.rect.y = y
 
 
-class Coin(pygame.sprite.Sprite):
+class Apple(pygame.sprite.Sprite):
+	
 	def __init__(self, x, y):
 		pygame.sprite.Sprite.__init__(self)
 		img = pygame.image.load('img2/apple.png')
@@ -383,19 +387,20 @@ class Exit(pygame.sprite.Sprite):
 		self.rect.x = x
 		self.rect.y = y
 
-
+# Colision del cursor, evento click
 
 player = Player(100, screen_height - 130)
 
 spinner_enemy_group = pygame.sprite.Group()
 moving_platform_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
-coin_group = pygame.sprite.Group()
+apple_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 
 #create dummy coin for showing the score
-score_coin = Coin(tile_size // 2, tile_size // 2)
-coin_group.add(score_coin)
+apple_score = Apple(tile_size // 2, tile_size // 2)
+apple_group.add(apple_score)
+
 
 #load in level data and create world
 if path.exists(f'level{level}_data'):
@@ -413,9 +418,9 @@ exit_button = Button(screen_width // 2 + 150, screen_height // 2, exit_img)
 run = True
 while run:
 
-	clock.tick(fps)
+	# Colision del cursor, evento click
 
-	screen.blit(bg_img, (0, 0))
+	screen.blit(bg_img, (0, 0))  # Solo una vez hacer click
 
 	if main_menu == True:
 		if exit_button.draw():
@@ -430,7 +435,7 @@ while run:
 			moving_platform_group.update()
 			#update score
 			#check if a coin has been collected
-			if pygame.sprite.spritecollide(player, coin_group, True):
+			if pygame.sprite.spritecollide(player, apple_group, True):
 				score += 1
 				coin_fx.play()
 			draw_game_text('X ' + str(score), font_score, white, tile_size - 10, 10)
@@ -438,7 +443,7 @@ while run:
 		spinner_enemy_group.draw(screen)
 		moving_platform_group.draw(screen)
 		lava_group.draw(screen)
-		coin_group.draw(screen)
+		apple_group.draw(screen)
 		exit_group.draw(screen)
 
 		game_over = player.update(game_over)
