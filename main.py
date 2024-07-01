@@ -91,20 +91,21 @@ class Button():
 		# Posicion del mouse
 		pos = pygame.mouse.get_pos()
 
-		# Colision del cursor, evento click
+		# Colision del cursor con boton, evento click
 		if self.rect.collidepoint(pos):
 			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:  # Solo una vez hacer click
 				action = True
 				self.clicked = True
 
+		# Reseteamos atributo click para que funcione posteriormente
 		if pygame.mouse.get_pressed()[0] == 0:
 			self.clicked = False
 
-
-		#draw button
+		# Poner boton en el juego
 		screen.blit(self.image, self.rect)
 
 		return action
+
 
 
 class Player():
@@ -118,7 +119,7 @@ class Player():
 		col_thresh = 20
 
 		if game_over == 0:
-			#get keypresses
+			# Movimiento jugador
 			key = pygame.key.get_pressed()
 			if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
 				jump_fx.play()
@@ -160,6 +161,7 @@ class Player():
 			if self.vel_y > 10:
 				self.vel_y = 10
 			dy += self.vel_y
+
 
 			#check for collision
 			self.in_air = True
@@ -353,9 +355,6 @@ class Platform(pygame.sprite.Sprite):
 		if abs(self.move_counter) > 50:
 			self.move_direction *= -1
 			self.move_counter *= -1
-
-
-
 
 
 class Lava(pygame.sprite.Sprite):
