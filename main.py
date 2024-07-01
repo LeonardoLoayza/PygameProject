@@ -186,7 +186,7 @@ class Player():
 
 			# Colision
 			self.in_air = True
-			for tile in world.tile_list:
+			for tile in world.get_tile_list():
 				# Si colisiona en eje X 
 				if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
 					dx = 0
@@ -284,7 +284,8 @@ class Player():
 
 class World():
 	def __init__(self, data):
-		self.tile_list = []
+    # Usando encapsulacion
+		self._tile_list = []
 
 		# Cargar estructuras (img)
 		dirt_img = pygame.image.load('img2/a/estructura_9.png')
@@ -300,14 +301,14 @@ class World():
 					img_rect.x = col_count * tile_size
 					img_rect.y = row_count * tile_size
 					tile = (img, img_rect)
-					self.tile_list.append(tile)
+					self._tile_list.append(tile)
 				if tile == 2:
 					img = pygame.transform.scale(grass_img, (tile_size, tile_size))
 					img_rect = img.get_rect()
 					img_rect.x = col_count * tile_size
 					img_rect.y = row_count * tile_size
 					tile = (img, img_rect)
-					self.tile_list.append(tile)
+					self._tile_list.append(tile)
 				if tile == 3:
 					blob = Enemy(col_count * tile_size, row_count * tile_size + 15)
 					spinner_enemy_group.add(blob)
@@ -330,9 +331,11 @@ class World():
 				col_count += 1
 			row_count += 1
 
+	def get_tile_list(self):
+				return self._tile_list
 
 	def draw(self):
-		for tile in self.tile_list:
+		for tile in self._tile_list:
 			screen.blit(tile[0], tile[1])
 
 
