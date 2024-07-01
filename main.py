@@ -25,7 +25,7 @@ font_score = pygame.font.SysFont('Bauhaus 93', 30)
 tile_size = 50
 game_over = 0 # 1, 0, -1
 main_menu = True
-level = 6
+level = 0
 max_levels = 8
 score = 0
 white = (255, 255, 255)
@@ -110,7 +110,28 @@ class Button():
 
 class Player():
 	def __init__(self, x, y):
-		self.reset(x, y)
+		self.images_right = []
+		self.images_left = []
+		self.index = 0
+		self.counter = 0
+		for num in range(1,5):
+			img_right = pygame.image.load(f'img2/player_{num}.png')
+			img_right = pygame.transform.scale(img_right, (40, 80))
+			img_left = pygame.transform.flip(img_right, True, False) # Flip eje X 
+
+			self.images_right.append(img_right)
+			self.images_left.append(img_left)
+		self.dead_image = pygame.image.load('img/ghost.png')
+		self.image = self.images_right[self.index]
+		self.rect = self.image.get_rect()
+		self.rect.x = x
+		self.rect.y = y
+		self.width = self.image.get_width()
+		self.height = self.image.get_height()
+		self.vel_y = 0
+		self.jumped = False
+		self.direction = 0
+		self.in_air = True
 
 	def update(self, game_over):
 		dx = 0
@@ -144,7 +165,7 @@ class Player():
 					self.image = self.images_left[self.index]
 
 
-			#handle animation
+			# Animacion
 			if self.counter > walk_cooldown:
 				self.counter = 0	
 				self.index += 1
@@ -156,69 +177,69 @@ class Player():
 					self.image = self.images_left[self.index]
 
 
-			# Add gravity
+			# Gravedad
 			self.vel_y += 1
 			if self.vel_y > 10:
 				self.vel_y = 10
 			dy += self.vel_y
 
 
-			#check for collision
+			# Colision
 			self.in_air = True
 			for tile in world.tile_list:
-				#check for collision in x direction
+				# Si colisiona en eje X 
 				if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
 					dx = 0
-				#check for collision in y direction
+				# Si colisiona en eje Y
 				if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-					#check if below the ground i.e. jumping
+					# Si toca algun objeto por debajo a.k.a esta saltando y colisiona
 					if self.vel_y < 0:
 						dy = tile[1].bottom - self.rect.top
 						self.vel_y = 0
-					#check if above the ground i.e. falling
+					# Si esta encima del piso a.k.a cayendose
 					elif self.vel_y >= 0:
 						dy = tile[1].top - self.rect.bottom
 						self.vel_y = 0
 						self.in_air = False
 
 
-			#check for collision with enemies
+			# Colision con enemigos
 			if pygame.sprite.spritecollide(self, spinner_enemy_group, False):
 				game_over = -1
 				game_over_fx.play()
 
-			#check for collision with lava
+			# Colision con lava 
 			if pygame.sprite.spritecollide(self, lava_group, False):
 				game_over = -1
 				game_over_fx.play()
 
-			#check for collision with exit
+			# Si el jugador colisiona con la puerta, pasa al siguiente nivel
 			if pygame.sprite.spritecollide(self, exit_group, False):
 				game_over = 1
 
 
-			#check for collision with platforms
+			# Colision con plataforma movible
 			for platform in moving_platform_group:
-				#collision in the x direction
+				# Eje x
 				if platform.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
 					dx = 0
-				#collision in the y direction
+				# Eje Y
 				if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-					#check if below platform
+					# Colision debajo de la plataforma
 					if abs((self.rect.top + dy) - platform.rect.bottom) < col_thresh:
 						self.vel_y = 0
 						dy = platform.rect.bottom - self.rect.top
-					#check if above platform
+					# Arriba de la plataforma movible
 					elif abs((self.rect.bottom + dy) - platform.rect.top) < col_thresh:
 						self.rect.bottom = platform.rect.top - 1
 						self.in_air = False
 						dy = 0
-					#move sideways with the platform
+					# Moverse izquierda a derecha
 					if platform.move_x != 0:
 						self.rect.x += platform.move_direction
 
 
-			#update player coordinates
+			# Aumentar a las coordinadas del jugador
 			self.rect.x += dx
 			self.rect.y += dy
 
@@ -229,7 +250,7 @@ class Player():
 			if self.rect.y > 200:
 				self.rect.y -= 5
 
-		#draw player onto screen
+		# Poner al jugador en pantalla
 		screen.blit(self.image, self.rect)
 
 		return game_over
@@ -265,7 +286,7 @@ class World():
 	def __init__(self, data):
 		self.tile_list = []
 
-		#load images
+		# Cargar estructuras (img)
 		dirt_img = pygame.image.load('img2/a/estructura_9.png')
 		grass_img = pygame.image.load('img2/a/estructura_3.png')
 
@@ -395,12 +416,12 @@ lava_group = pygame.sprite.Group()
 apple_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 
-#create dummy coin for showing the score
+# Mostrar Score en la pantalla
 apple_score = Apple(tile_size // 2, tile_size // 2)
 apple_group.add(apple_score)
 
 
-#load in level data and create world
+# Cargar el archivo binario y crear nuestro mundo(nivel)
 if path.exists(f'level{level}_data'):
 	pickle_in = open(f'level{level}_data', 'rb')
 	world_data = pickle.load(pickle_in)
@@ -431,8 +452,8 @@ while run:
 		if game_over == 0:
 			spinner_enemy_group.update()
 			moving_platform_group.update()
-			#update score
-			#check if a coin has been collected
+			# Actualizar manzanas
+			# Revisar si la manzana fue recolectada
 			if pygame.sprite.spritecollide(player, apple_group, True):
 				score += 1
 				coin_fx.play()
@@ -446,7 +467,7 @@ while run:
 
 		game_over = player.update(game_over)
 
-		#if player has died
+		# Si el jugador pierde (muere)
 		if game_over == -1:
 			if restart_button.draw():
 				world_data = []
@@ -454,12 +475,11 @@ while run:
 				game_over = 0
 				score = 0
 
-		#if player has completed the level
+		# Si se completa el nivel
 		if game_over == 1:
-			#reset game and go to next level
+			# Resetear el nivel y pasar al siguiente nivel
 			level += 1
 			if level <= max_levels:
-				#reset level
 				world_data = []
 				world = reset_level(level)
 				game_over = 0
@@ -467,7 +487,7 @@ while run:
 				draw_game_text('GANASTE!', font, (255,255,255), (screen_width // 2) - 140, screen_height // 2)
 				if restart_button.draw():
 					level = 1
-					#reset level
+					# Resetear nivel
 					world_data = []
 					world = reset_level(level)
 					game_over = 0
