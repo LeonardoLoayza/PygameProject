@@ -1,1 +1,1 @@
-restart
+img2/a/estructura_9.png
