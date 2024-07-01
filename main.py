@@ -318,9 +318,9 @@ class Enemy(pygame.sprite.Sprite):
 	def __init__(self, x, y):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load('enemy.png')
-		# Colision del cursor, evento click
+		self.rect = self.image.get_rect()
 		self.rect.x = x
-		self.rect.y = y  # Solo una vez hacer click
+		self.rect.y = y 
 		self.move_direction = 1
 		self.move_counter = 0
 
@@ -387,7 +387,6 @@ class Exit(pygame.sprite.Sprite):
 		self.rect.x = x
 		self.rect.y = y
 
-# Colision del cursor, evento click
 
 player = Player(100, screen_height - 130)
 
@@ -418,9 +417,9 @@ exit_button = Button(screen_width // 2 + 150, screen_height // 2, exit_img)
 run = True
 while run:
 
-	# Colision del cursor, evento click
+	clock.tick(fps)
 
-	screen.blit(bg_img, (0, 0))  # Solo una vez hacer click
+	screen.blit(bg_img, (0, 0))
 
 	if main_menu == True:
 		if exit_button.draw():
